@@ -3,7 +3,7 @@ package api
 import "github.com/gin-gonic/gin"
 
 func (api API) routeGroup(g *gin.RouterGroup) {
-	g.GET("", api.listGroup)
+	g.GET("", api.listGroups)
 	g.POST("", api.addGroup)
 
 	{
@@ -12,9 +12,5 @@ func (api API) routeGroup(g *gin.RouterGroup) {
 
 		g.PUT("", api.updateGroup)
 		g.DELETE("", api.deleteGroup)
-
-		g.POST("/join", api.joinGroup)
-		g.POST("/quit", api.joinGroup)
 	}
-
 }
