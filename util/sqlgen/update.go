@@ -13,6 +13,24 @@ type setClause struct {
 	value  interface{}
 }
 
+func (set setClause) ToSql() (sqlStr string, args []interface{}, err error) {
+	var valSql string
+	switch typeVal := set.value.(type) {
+	case Sqlizer:
+		var valArgs []interface{}
+		valSql, valArgs, err = typeVal.ToSql()
+		if err != nil {
+			return
+		}
+		args = append(args, valArgs...)
+	default:
+		valSql = "?"
+		args = append(args, set.value)
+	}
+	sqlStr = fmt.Sprintf("%s=%s", set.column, valSql)
+	return
+}
+
 type UpdateBuilder struct {
 	table string
 

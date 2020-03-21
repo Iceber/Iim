@@ -8,7 +8,7 @@ import (
 )
 
 type DeleteBuilder struct {
-	from string
+	table string
 
 	whereParts []Sqlizer
 	orderBys   []string
@@ -17,22 +17,25 @@ type DeleteBuilder struct {
 }
 
 func (b *DeleteBuilder) ToSql() (sqlStr string, args []interface{}, err error) {
-	if len(b.from) == 0 {
+	if len(b.table) == 0 {
 		err = fmt.Errorf("delete statements must specify a From table")
 		return
 	}
+	if len(b.whereParts) == 0 {
+		err = fmt.Errorf("could not delete all data in table")
+	}
+
 	sql := &bytes.Buffer{}
 	sql.WriteString("DELETE ")
 	sql.WriteString("FROM ")
-	sql.WriteString(b.from)
+	sql.WriteString(b.table)
 
-	if len(b.whereParts) > 0 {
-		sql.WriteString(" WHERE ")
-		args, err = appendToSql(sql, args, b.whereParts, " AND ")
-		if err != nil {
-			return
-		}
+	sql.WriteString(" WHERE ")
+	args, err = appendToSql(sql, args, b.whereParts, " AND ")
+	if err != nil {
+		return
 	}
+
 	if len(b.orderBys) > 0 {
 		sql.WriteString(" ORDER BY ")
 		sql.WriteString(strings.Join(b.orderBys, ", "))
@@ -42,14 +45,14 @@ func (b *DeleteBuilder) ToSql() (sqlStr string, args []interface{}, err error) {
 		sql.WriteString(strconv.FormatUint(b.limit, 100))
 	}
 	if b.offset > 0 {
-		sql.WriteString(" ")
+		sql.WriteString(" OFFSET ")
 		sql.WriteString(strconv.FormatUint(b.offset, 10))
 	}
 	return
 }
 
-func (b *DeleteBuilder) From(from string) *DeleteBuilder {
-	b.from = from
+func (b *DeleteBuilder) Table(table string) *DeleteBuilder {
+	b.table = table
 	return b
 }
 
